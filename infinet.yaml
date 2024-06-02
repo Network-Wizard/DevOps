@@ -1,0 +1,9 @@
+---
+ - name: Third Party Software Installation
+   hosts: Linux-Cluster # Infinet VMs
+   become: true
+   tasks:
+    - name: Ansible apt install Package
+      apt:
+        name: tmux
+        state: present
