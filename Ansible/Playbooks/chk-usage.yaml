@@ -1,0 +1,11 @@
+---
+- name: Check Disk Usage on Servers
+  hosts: all
+  tasks:
+    - name: Check disk usage
+      command: df -h
+      register: disk_usage
+
+    - name: Display disk usage
+      debug:
+        msg: "{{ disk_usage.stdout }}"
