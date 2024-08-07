@@ -3,6 +3,16 @@
   become: true
 
   tasks:
+    - name: Ensure pip is installed
+      apt:
+        name: python3-pip
+        state: present
+
+    - name: Install Docker module for Python
+      pip:
+        name: docker
+        state: present
+
     - name: Pull Jenkins Docker image
       docker_image:
         name: jenkins/jenkins
