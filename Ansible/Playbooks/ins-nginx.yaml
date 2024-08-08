@@ -3,19 +3,7 @@
   become: true
 
   tasks:
-    - name: Ensure Docker is installed
-      apt:
-        name: docker.io
-        state: present
-      notify:
-        - Start Docker
-
-    - name: Ensure Docker is started
-      service:
-        name: docker
-        state: started
-        enabled: true
-
+  
     - name: Pull Nginx Docker image
       docker_image:
         name: nginx
