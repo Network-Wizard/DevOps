@@ -1,0 +1,38 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+    - name: Ensure Docker is installed
+      apt:
+        name: docker.io
+        state: present
+      notify:
+        - Start Docker
+
+    - name: Ensure Docker is started
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Pull Nginx Docker image
+      docker_image:
+        name: nginx
+        tag: latest
+        source: pull
+
+    - name: Run Nginx container
+      docker_container:
+        name: nginx
+        image: nginx:latest
+        state: started
+        restart_policy: on-failure
+        ports:
+          - "80:80"
+
+  handlers:
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
