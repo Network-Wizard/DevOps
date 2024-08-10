@@ -9,7 +9,7 @@
       - "8080:8080"
       - "50000:50000"
     jenkins_volume: "jenkins_home:/var/jenkins_home"
-    jenkins_healthcheck_cmd: "curl -f http://localhost:8080 || exit 1"
+    jenkins_healthcheck_cmd: "curl -f http://localhost:8080/login || exit 1"
     jenkins_healthcheck_interval: "1m"
     jenkins_healthcheck_timeout: "10s"
     jenkins_healthcheck_retries: 3
