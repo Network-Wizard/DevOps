@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Stage 1 - Initial Setup') {
+            steps {
+                echo 'Running initial setup...'
+            }
+        }
+
+        stage('Stage 2 - Build') {
+            steps {
+                echo 'Building the application...'
+            }
+        }
+
+        stage('Stage 3 - Test') {
+            steps {
+                echo 'Running tests...'
+            }
+        }
+
+        stage('Stage 4 - Deploy') {
+            steps {
+                echo 'Deploying the application...'
+            }
+        }
+
+        stage('Stage 5 - Cleanup') {
+            steps {
+                echo 'Cleaning up after deployment...'
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline execution completed!'
+        }
+    }
+}
