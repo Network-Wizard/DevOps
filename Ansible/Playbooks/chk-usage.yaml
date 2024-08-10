@@ -10,17 +10,19 @@
 
     - name: Parse disk usage
       set_fact:
-        disk_usage: "{{ disk_usage_raw.stdout_lines[1:] | map('split') | list }}"
+        disk_usage: >
+          {{
+            disk_usage_raw.stdout_lines[1:] | 
+            map('regex_replace', '\s+', ' ') |
+            map('split', ' ') | 
+            map('join', ' | ') | 
+            join('\n')
+          }}
 
     - name: Display disk usage in structured format
       debug:
         msg: |
           Disk Usage Report for {{ inventory_hostname }}:
-          {% for disk in disk_usage %}
-          - Filesystem: {{ disk[0] }}
-            Size: {{ disk[1] }}
-            Used: {{ disk[2] }}
-            Available: {{ disk[3] }}
-            Use%: {{ disk[4] }}
-            Mounted on: {{ disk[5] }}
-          {% endfor %}
+          Filesystem | Size | Used | Available | Use% | Mounted on
+          --------------------------------------------------------
+          {{ disk_usage }}
