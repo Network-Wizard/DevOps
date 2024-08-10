@@ -18,8 +18,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'       # Maximum 1 CPU core
-          memory: 1024M      # Maximum 512MB RAM
+          cpus: '2.0'       # Maximum 2 CPU core
+          memory: 1024M      # Maximum 1024MB RAM
 
   semaphore:
     container_name: ansiblesemaphore
@@ -57,5 +57,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'       # Maximum 0.5 CPU core
-          memory: 1024M      # Maximum 256MB RAM
+          cpus: '2.0'       # Maximum 2 CPU core
+          memory: 1024M      # Maximum 1024MB RAM
