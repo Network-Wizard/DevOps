@@ -13,8 +13,8 @@
     jenkins_healthcheck_interval: "1m"
     jenkins_healthcheck_timeout: "10s"
     jenkins_healthcheck_retries: 3
-    jenkins_cpu_limit: "2.0"  # Limit to 2 CPU core
-    jenkins_memory_limit: "2g"  # Limit to 2GB RAM
+    jenkins_cpus: "2.0"  # Maximum 2 CPU cores
+    jenkins_memory: "3g"  # Maximum 3GB RAM
 
   tasks:
     - name: Ensure pip is installed
@@ -47,5 +47,5 @@
           interval: "{{ jenkins_healthcheck_interval }}"
           timeout: "{{ jenkins_healthcheck_timeout }}"
           retries: "{{ jenkins_healthcheck_retries }}"
-        cpu_limit: "{{ jenkins_cpu_limit }}"
-        memory_limit: "{{ jenkins_memory_limit }}"
+        cpus: "{{ jenkins_cpus }}"
+        memory: "{{ jenkins_memory }}"
