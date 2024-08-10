@@ -1,11 +1,26 @@
 ---
-- name: Check Disk Usage on Servers
+- name: Check and Report Disk Usage on Servers
   hosts: all
+  become: true
+
   tasks:
     - name: Check disk usage
       command: df -h
-      register: disk_usage
+      register: disk_usage_raw
 
-    - name: Display disk usage
+    - name: Parse disk usage
+      set_fact:
+        disk_usage: "{{ disk_usage_raw.stdout_lines[1:] | map('split') | list }}"
+
+    - name: Display disk usage in structured format
       debug:
-        msg: "{{ disk_usage.stdout }}"
+        msg: |
+          Disk Usage Report for {{ inventory_hostname }}:
+          {% for disk in disk_usage %}
+          - Filesystem: {{ disk[0] }}
+            Size: {{ disk[1] }}
+            Used: {{ disk[2] }}
+            Available: {{ disk[3] }}
+            Use%: {{ disk[4] }}
+            Mounted on: {{ disk[5] }}
+          {% endfor %}
