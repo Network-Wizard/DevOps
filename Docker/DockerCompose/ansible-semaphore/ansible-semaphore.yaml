@@ -1,3 +1,9 @@
+version: '3.8'
+
+volumes:
+  semaphore-mysql:
+    driver: local
+
 services:
   mysql:
     image: mysql:8.0
@@ -11,15 +17,15 @@ services:
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysql --user=${MYSQL_USER} --password=${MYSQL_PASSWORD} --execute 'SELECT 1'"]
       interval: 30s
       timeout: 10s
       retries: 5
     deploy:
       resources:
         limits:
-          cpus: '2.0'       # Maximum 2 CPU core
-          memory: 1024M      # Maximum 1024MB RAM
+          cpus: '2.0'       # Maximum 2 CPU cores
+          memory: 1024M      # Maximum 1GB RAM
 
   semaphore:
     container_name: ansiblesemaphore
@@ -53,9 +59,9 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
       interval: 1m
       timeout: 10s
-      retries: 5
+      retries: 3
     deploy:
       resources:
         limits:
-          cpus: '2.0'       # Maximum 2 CPU core
-          memory: 1024M      # Maximum 1024MB RAM
+          cpus: '2.0'       # Maximum 2 CPU cores
+          memory: 1024M      # Maximum 1GB RAM
