@@ -3,8 +3,24 @@
   become: true
   become_user: root
 
+  vars:
+    update_cache_timeout: 3600  # Cache validity timeout in seconds
+
   tasks:
-    - name: update apt packages
+    - name: Start package cache update process
+      debug:
+        msg: "Starting the APT package cache update process on {{ inventory_hostname }}..."
+
+    - name: Ensure APT package cache is up-to-date
       apt:
-        upgrade: yes
         update_cache: yes
+        cache_valid_time: "{{ update_cache_timeout }}"
+      register: apt_update
+
+    - name: Display result of APT cache update
+      debug:
+        msg: "APT cache was {{ 'updated' if apt_update.cache_updated else 'already up-to-date' }} on {{ inventory_hostname }}."
+
+    - name: End package cache update process
+      debug:
+        msg: "APT package cache update process completed on {{ inventory_hostname }}."
