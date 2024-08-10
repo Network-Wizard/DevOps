@@ -53,7 +53,7 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
       interval: 1m
       timeout: 10s
-      retries: 3
+      retries: 5
     deploy:
       resources:
         limits:
