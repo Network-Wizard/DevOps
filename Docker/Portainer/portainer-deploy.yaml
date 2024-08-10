@@ -1,6 +1,6 @@
 services:
   portainer:
-    image: portainer/portainer-ce:sts #fixed console attachment
+    image: portainer/portainer-ce:sts
     container_name: portainer
     restart: always
     ports:
@@ -12,8 +12,13 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: '3g'
+          cpus: '1.0'  # Limit to 1 CPU cores
+          memory: '1g'  # Limit to 1GB RAM
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9443"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
 
 volumes:
   portainer_data:
