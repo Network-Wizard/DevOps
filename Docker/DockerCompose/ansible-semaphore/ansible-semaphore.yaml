@@ -1,7 +1,3 @@
----
-volumes:
-  semaphore-mysql:
-    driver: local
 services:
   mysql:
     image: mysql:8.0
@@ -9,36 +5,57 @@ services:
     volumes:
       - semaphore-mysql:/var/lib/mysql
     environment:
-      - MYSQL_RANDOM_ROOT_PASSWORD=yes
-      - MYSQL_DATABASE=semaphore
-      - MYSQL_USER=semaphore
-      - MYSQL_PASSWORD=123456789
+      - MYSQL_RANDOM_ROOT_PASSWORD=${MYSQL_RANDOM_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'       # Maximum 1 CPU core
+          memory: 1024M      # Maximum 512MB RAM
+
   semaphore:
     container_name: ansiblesemaphore
     image: semaphoreui/semaphore:v2.8.90
     user: "${UID}:${GID}"
     ports:
-      - 3000:3000
+      - "3000:3000"
     environment:
-      - SEMAPHORE_DB_USER=semaphore
-      - SEMAPHORE_DB_PASS=123456789
-      - SEMAPHORE_DB_HOST=mysql
-      - SEMAPHORE_DB_PORT=3306
-      - SEMAPHORE_DB_DIALECT=mysql
-      - SEMAPHORE_DB=semaphore
-      - SEMAPHORE_PLAYBOOK_PATH=/tmp/semaphore/
-      - SEMAPHORE_ADMIN_PASSWORD=P@ssword123  # change!
-      - SEMAPHORE_ADMIN_NAME=admin
-      - SEMAPHORE_ADMIN_EMAIL=admin@localhost
-      - SEMAPHORE_ADMIN=admin
-      - SEMAPHORE_ACCESS_KEY_ENCRYPTION=17NqIuxF4lPuUSbnCjJm6gJpxhY/QQ2p8s6OpfiJPms=
-      - ANSIBLE_HOST_KEY_CHECKING=false
+      - SEMAPHORE_DB_USER=${SEMAPHORE_DB_USER}
+      - SEMAPHORE_DB_PASS=${SEMAPHORE_DB_PASS}
+      - SEMAPHORE_DB_HOST=${SEMAPHORE_DB_HOST}
+      - SEMAPHORE_DB_PORT=${SEMAPHORE_DB_PORT}
+      - SEMAPHORE_DB_DIALECT=${SEMAPHORE_DB_DIALECT}
+      - SEMAPHORE_DB=${SEMAPHORE_DB}
+      - SEMAPHORE_PLAYBOOK_PATH=${SEMAPHORE_PLAYBOOK_PATH}
+      - SEMAPHORE_ADMIN_PASSWORD=${SEMAPHORE_ADMIN_PASSWORD}
+      - SEMAPHORE_ADMIN_NAME=${SEMAPHORE_ADMIN_NAME}
+      - SEMAPHORE_ADMIN_EMAIL=${SEMAPHORE_ADMIN_EMAIL}
+      - SEMAPHORE_ADMIN=${SEMAPHORE_ADMIN}
+      - SEMAPHORE_ACCESS_KEY_ENCRYPTION=${SEMAPHORE_ACCESS_KEY_ENCRYPTION}
+      - ANSIBLE_HOST_KEY_CHECKING=${ANSIBLE_HOST_KEY_CHECKING}
     volumes:
       - ./inventory/:/inventory:ro
       - ./authorized-keys/:/authorized-keys:ro
       - ./config/:/etc/semaphore:rw
     restart: unless-stopped
     depends_on:
-      - mysql
-# best practise to gather env vars to .env
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'       # Maximum 0.5 CPU core
+          memory: 1024M      # Maximum 256MB RAM
