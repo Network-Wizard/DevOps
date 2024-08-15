@@ -5,30 +5,78 @@ pipeline {
         stage('Stage 1 - Initial Setup') {
             steps {
                 echo 'Running initial setup...'
+                sh '''
+                    # Update package list
+                    sudo apt update
+
+                    # Clean up workspace and older files
+                    echo $PWD
+                    rm -rf *
+
+                    # Stop and remove nginx container if it exists
+                    if [ $(docker ps -a -q --filter="name=nginx") ]; then
+                        docker stop nginx
+                        docker rm nginx
+                        echo "Stopped and removed existing nginx container."
+                    else
+                        echo "No nginx container running."
+                    fi
+                '''
             }
         }
 
         stage('Stage 2 - Build') {
             steps {
                 echo 'Building the application...'
+                sh '''
+                    # Build a Docker image for nginx
+                    echo "FROM nginx:latest" > Dockerfile
+                    docker build -t my-nginx-image .
+                '''
             }
         }
 
         stage('Stage 3 - Test') {
             steps {
                 echo 'Running tests...'
+                sh '''
+                    # Check if Dockerfile exists and run sha256sum on it
+                    if [ -f Dockerfile ]; then
+                        sha256sum Dockerfile
+                    else
+                        echo "Dockerfile not found!"
+                        exit 1
+                    fi
+                '''
             }
         }
 
         stage('Stage 4 - Deploy') {
             steps {
                 echo 'Deploying the application...'
+                sh '''
+                    # Run the Docker container and expose ports
+                    docker run -d --name nginx-container -p 8888:80 my-nginx-image
+
+                    # Wait for a few seconds to ensure nginx is up
+                    sleep 5
+
+                    # Run nc to check if nginx is running on port 8080
+                    nc -zv localhost 8888
+                '''
             }
         }
 
         stage('Stage 5 - Cleanup') {
             steps {
                 echo 'Cleaning up after deployment...'
+                sh '''
+                    # Sleep for 1 minute before stopping the container
+                    sleep 60
+
+                    # Stop the nginx container
+                    docker stop nginx-container
+                '''
             }
         }
     }
