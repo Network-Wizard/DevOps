@@ -6,12 +6,15 @@ pipeline {
             steps {
                 echo 'Running initial setup...'
                 sh '''
-                    # Update package list
-                    sudo apt update
+                    # Update package list if needed
+                    # sudo apt update
+
 
                     # Clean up workspace and older files
                     echo $PWD
-                    rm -rf *
+                    # Delete workspace if needed
+                    # rm -rf *
+                    ls -ltrha
 
                     # Stop and remove nginx container if it exists
                     if [ $(docker ps -a -q --filter="name=nginx") ]; then
