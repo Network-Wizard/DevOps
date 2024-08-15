@@ -7,6 +7,7 @@ pipeline {
                 echo 'Running initial setup...'
                 sh '''
                     # Update package list if needed
+                    # Remember to edit visduo to grant permission
                     # sudo apt update
 
 
