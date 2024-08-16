@@ -35,7 +35,7 @@ pipeline {
                 echo 'Building the application...'
                 sh '''
                     # Create a more advanced Dockerfile
-                    cat <<EOL > Dockerfile
+                    cat <<'EOL' > Dockerfile
                     # Start from the official nginx image
                     FROM nginx:latest
 
