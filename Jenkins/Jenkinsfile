@@ -8,14 +8,11 @@ pipeline {
             steps {
                 echo 'Running initial setup...'
                 sh '''
-                    # Update package list if needed
-                    # Remember to edit visudo to grant permission
                     sudo apt update
 
                     # Clean up workspace and older files
                     echo $PWD
-                    # Delete workspace if needed
-                    # rm -rf *
+                    rm -f Dockerfile
                     ls -ltrha
 
                     # Stop and remove nginx container if it exists
@@ -34,8 +31,34 @@ pipeline {
             steps {
                 echo 'Building the application...'
                 sh '''
-                    # Build a Docker image for nginx
-                    echo "FROM nginx:latest" > Dockerfile
+                    # Create a more advanced Dockerfile
+                    cat <<EOL > Dockerfile
+                    # Start from the official nginx image
+                    FROM nginx:latest
+
+                    # Set environment variables
+                    ENV APP_NAME="My Custom Nginx" \
+                        AUTHOR="Jenkins Pipeline"
+
+                    # Install additional tools inside the image
+                    RUN apt update && apt install -y curl vim
+
+                    # Create a custom HTML page directly within the Dockerfile
+                    RUN echo "<html><head><title>Welcome to $APP_NAME</title></head>" > /usr/share/nginx/html/index.html && \
+                        echo "<body><h1>Hello from $APP_NAME by $AUTHOR!</h1></body></html>" >> /usr/share/nginx/html/index.html
+
+                    # Add a health check to ensure nginx is running
+                    HEALTHCHECK --interval=30s --timeout=10s \
+                        CMD curl -f http://localhost/ || exit 1
+
+                    # Expose the port nginx will run on
+                    EXPOSE 80
+
+                    # Start nginx service
+                    CMD ["nginx", "-g", "daemon off;"]
+                    EOL
+
+                    # Build the Docker image
                     docker build -t my-nginx-image .
                 '''
             }
