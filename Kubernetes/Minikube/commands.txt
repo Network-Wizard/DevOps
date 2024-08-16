@@ -1,0 +1,15 @@
+# Status
+minikube status
+minikube kubectl -- get pods --all-namespaces
+minikube kubectl -- get deployments --all-namespaces
+minikube kubectl -- get services --all-namespaces
+minikube service list
+# Configs
+minikube kubectl -- apply -f apache-deployment.yaml
+minikube kubectl -- apply -f apache-service.yaml
+# Remove
+minikube kubectl -- delete deployment  apache-deployment
+minikube kubectl -- delete service apache-deployment
+# Tshoot
+minikube ssh
+minikube service apache-service --url
