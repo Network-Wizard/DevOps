@@ -6,23 +6,28 @@ pipeline {
     stages {
         stage('Stage 1 - Initial Setup') {
             steps {
-                echo 'Running initial setup...'
+                echo 'Starting Stage 1: Initial Setup...'
                 sh '''
-                    echo $USER
-                    sudo apt update
+                    echo "Current User: $USER"
+                    echo "Updating apt repositories..."
+                    sudo apt update -y
 
                     # Clean up workspace and older files
-                    echo $PWD
+                    echo "Cleaning up the workspace..."
+                    echo "Current Directory: $PWD"
                     rm -f Dockerfile
+                    echo "Workspace content after cleanup:"
                     ls -ltrha
 
                     # Find and stop/remove the exact nginx container if it exists
+                    echo "Checking for existing container named 'nginx-container'..."
                     CONTAINER_ID=$(docker ps -a -q --filter="name=^/nginx-container$")
 
                     if [ -n "$CONTAINER_ID" ]; then
+                        echo "Found container with ID $CONTAINER_ID. Stopping and removing it..."
                         docker stop $CONTAINER_ID || true
                         docker rm $CONTAINER_ID || true
-                        echo "Stopped and removed container named 'nginx-container'."
+                        echo "Container 'nginx-container' stopped and removed."
                     else
                         echo "No container named 'nginx-container' found."
                     fi
@@ -32,9 +37,10 @@ pipeline {
 
         stage('Stage 2 - Build') {
             steps {
-                echo 'Building the application...'
+                echo 'Starting Stage 2: Building Docker Image...'
                 sh '''
-                    # Create a properly formatted Dockerfile
+                    # Create a Dockerfile
+                    echo "Creating Dockerfile for Nginx..."
                     cat <<EOL > Dockerfile
 # Start from the official nginx image
 FROM nginx:latest
@@ -47,7 +53,7 @@ RUN apt update && apt install -y curl vim
 
 # Create a custom HTML page directly within the Dockerfile
 RUN echo "<html><head><title>Welcome to $APP_NAME</title></head>" > /usr/share/nginx/html/index.html && \
-    echo "<body><h1>Hello from $APP_NAME by $AUTHOR!</h1></body></html>" >> /usr/share/nginx/html/index.html
+    echo "<body><h1>Nginx Docker container created within Jenkins CI/CD pipeline</h1></body></html>" >> /usr/share/nginx/html/index.html
 
 # Add a health check to ensure nginx is running
 HEALTHCHECK --interval=30s --timeout=10s CMD curl -f http://localhost/ || exit 1
@@ -59,21 +65,24 @@ EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 EOL
 
-                    # Build the Docker image
+                    echo "Dockerfile created successfully. Building the Docker image..."
                     docker build -t my-nginx-image .
+                    echo "Docker image 'my-nginx-image' built successfully."
                 '''
             }
         }
 
         stage('Stage 3 - Test') {
             steps {
-                echo 'Running tests...'
+                echo 'Starting Stage 3: Testing Dockerfile Integrity...'
                 sh '''
-                    # Check if Dockerfile exists and run sha256sum on it
+                    echo "Checking if Dockerfile exists..."
                     if [ -f Dockerfile ]; then
+                        echo "Dockerfile found. Calculating sha256sum..."
                         sha256sum Dockerfile
+                        echo "sha256sum calculation completed."
                     else
-                        echo "Dockerfile not found!"
+                        echo "Dockerfile not found! Exiting..."
                         exit 1
                     fi
                 '''
@@ -82,29 +91,31 @@ EOL
 
         stage('Stage 4 - Deploy') {
             steps {
-                echo 'Deploying the application...'
+                echo 'Starting Stage 4: Deploying Docker Container...'
                 sh '''
-                    # Run the Docker container and expose ports
+                    echo "Running the Docker container from 'my-nginx-image' and exposing port 8888..."
                     docker run -d --name nginx-container -p 8888:80 my-nginx-image
+                    echo "Docker container 'nginx-container' started successfully."
 
-                    # Wait for a few seconds to ensure nginx is up
+                    echo "Waiting 5 seconds to ensure nginx is up and running..."
                     sleep 5
 
-                    # Run nc to check if nginx is running on port 8888
-                    nc -zv localhost 8888
+                    echo "Performing network connectivity test on port 8888..."
+                    nc -zv localhost 8888 && echo "Nginx is running on port 8888." || echo "Failed to connect to Nginx on port 8888."
                 '''
             }
         }
 
         stage('Stage 5 - Cleanup') {
             steps {
-                echo 'Cleaning up after deployment...'
+                echo 'Starting Stage 5: Cleanup...'
                 sh '''
-                    # Sleep for 1 minute before stopping the container
+                    echo "Sleeping for 1 minute before stopping the container..."
                     sleep 60
 
-                    # Stop the nginx container
+                    echo "Stopping the 'nginx-container' Docker container..."
                     docker stop nginx-container || true
+                    echo "Cleanup completed. 'nginx-container' stopped."
                 '''
             }
         }
@@ -112,8 +123,11 @@ EOL
 
     post {
         always {
-            sh '''docker ps -a'''
-            echo 'Pipeline execution completed!'
+            echo 'Finalizing: Listing all containers (active and inactive)...'
+            sh '''docker ps -a
+            docker logs -f nginx-container
+            '''
+            echo 'Pipeline execution completed successfully!'
         }
     }
 }
