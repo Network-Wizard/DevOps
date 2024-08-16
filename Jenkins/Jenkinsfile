@@ -10,7 +10,7 @@ pipeline {
                 sh '''
                     echo "Current User: $USER"
                     echo "Updating apt repositories..."
-                    sudo apt update -y
+                    sudo apt update
 
                     # Clean up workspace and older files
                     echo "Cleaning up the workspace..."
