@@ -17,14 +17,14 @@ pipeline {
                     ls -ltrha
 
                     # Find and stop/remove the exact nginx container if it exists
-                    CONTAINER_ID=$(docker ps -a -q --filter="name=^/nginx$")
+                    CONTAINER_ID=$(docker ps -a -q --filter="name=^/nginx-container$")
 
                     if [ -n "$CONTAINER_ID" ]; then
                         docker stop $CONTAINER_ID || true
                         docker rm $CONTAINER_ID || true
-                        echo "Stopped and removed container named 'nginx'."
+                        echo "Stopped and removed container named 'nginx-container'."
                     else
-                        echo "No container named 'nginx' found."
+                        echo "No container named 'nginx-container' found."
                     fi
                 '''
             }
@@ -34,32 +34,30 @@ pipeline {
             steps {
                 echo 'Building the application...'
                 sh '''
-                    # Create a more advanced Dockerfile
-                    cat <<'EOL' > Dockerfile
-                    # Start from the official nginx image
-                    FROM nginx:latest
+                    # Create a properly formatted Dockerfile
+                    cat <<EOL > Dockerfile
+# Start from the official nginx image
+FROM nginx:latest
 
-                    # Set environment variables
-                    ENV APP_NAME="My Custom Nginx" \
-                        AUTHOR="Jenkins Pipeline"
+# Set environment variables
+ENV APP_NAME="My Custom Nginx" AUTHOR="Jenkins Pipeline"
 
-                    # Install additional tools inside the image
-                    RUN apt update && apt install -y curl vim
+# Install additional tools inside the image
+RUN apt update && apt install -y curl vim
 
-                    # Create a custom HTML page directly within the Dockerfile
-                    RUN echo "<html><head><title>Welcome to $APP_NAME</title></head>" > /usr/share/nginx/html/index.html && \
-                        echo "<body><h1>Hello from $APP_NAME by $AUTHOR!</h1></body></html>" >> /usr/share/nginx/html/index.html
+# Create a custom HTML page directly within the Dockerfile
+RUN echo "<html><head><title>Welcome to $APP_NAME</title></head>" > /usr/share/nginx/html/index.html && \
+    echo "<body><h1>Hello from $APP_NAME by $AUTHOR!</h1></body></html>" >> /usr/share/nginx/html/index.html
 
-                    # Add a health check to ensure nginx is running
-                    HEALTHCHECK --interval=30s --timeout=10s \
-                        CMD curl -f http://localhost/ || exit 1
+# Add a health check to ensure nginx is running
+HEALTHCHECK --interval=30s --timeout=10s CMD curl -f http://localhost/ || exit 1
 
-                    # Expose the port nginx will run on
-                    EXPOSE 80
+# Expose the port nginx will run on
+EXPOSE 80
 
-                    # Start nginx service
-                    CMD ["nginx", "-g", "daemon off;"]
-                    EOL
+# Start nginx service
+CMD ["nginx", "-g", "daemon off;"]
+EOL
 
                     # Build the Docker image
                     docker build -t my-nginx-image .
