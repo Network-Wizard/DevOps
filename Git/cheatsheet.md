@@ -27,4 +27,3 @@ git remote add [alias] [url]
 # Transmit local branch commits to the remote repository branch
 git push [alias] [branch]
 # e.g: git push -u origin master
-
