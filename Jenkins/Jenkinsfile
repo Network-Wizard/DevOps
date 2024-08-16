@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'direct-linux-cluster'
+    }
 
     stages {
         stage('Stage 1 - Initial Setup') {
@@ -7,9 +9,8 @@ pipeline {
                 echo 'Running initial setup...'
                 sh '''
                     # Update package list if needed
-                    # Remember to edit visduo to grant permission
-                    # sudo apt update
-
+                    # Remember to edit visudo to grant permission
+                    sudo apt update
 
                     # Clean up workspace and older files
                     echo $PWD
@@ -65,7 +66,7 @@ pipeline {
                     # Wait for a few seconds to ensure nginx is up
                     sleep 5
 
-                    # Run nc to check if nginx is running on port 8080
+                    # Run nc to check if nginx is running on port 8888
                     nc -zv localhost 8888
                 '''
             }
@@ -87,6 +88,7 @@ pipeline {
 
     post {
         always {
+            sh '''docker ps -a'''
             echo 'Pipeline execution completed!'
         }
     }
