@@ -6,8 +6,10 @@ pipeline {
     stages {
         stage('Stage 1 - Initial Setup') {
             steps {
+
                 echo 'Running initial setup...'
                 sh '''
+                    echo #USER
                     sudo apt update
 
                     # Clean up workspace and older files
