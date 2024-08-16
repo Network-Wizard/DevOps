@@ -2,11 +2,26 @@
 - hosts: all
   become: true
 
+  vars:
+    jenkins_image: "jenkins/jenkins:lts-jdk17"
+    jenkins_container_name: "jenkins"
+    jenkins_ports:
+      - "8080:8080"
+      - "50000:50000"
+    jenkins_volume: "jenkins_home:/var/jenkins_home"
+    jenkins_healthcheck_cmd: "curl -f http://localhost:8080/login || exit 1"
+    jenkins_healthcheck_interval: "1m"
+    jenkins_healthcheck_timeout: "10s"
+    jenkins_healthcheck_retries: 3
+    jenkins_cpus: "2.0"  # Maximum 2 CPU cores
+    jenkins_memory: "3g"  # Maximum 3GB RAM
+
   tasks:
     - name: Ensure pip is installed
       apt:
         name: python3-pip
         state: present
+        update_cache: yes
 
     - name: Install Docker module for Python
       pip:
@@ -15,18 +30,22 @@
 
     - name: Pull Jenkins Docker image
       docker_image:
-        name: jenkins/jenkins
-        tag: lts-jdk17
+        name: "{{ jenkins_image }}"
         source: pull
 
     - name: Run Jenkins container
       docker_container:
-        name: jenkins
-        image: jenkins/jenkins:lts-jdk17
+        name: "{{ jenkins_container_name }}"
+        image: "{{ jenkins_image }}"
         state: started
         restart_policy: on-failure
-        ports:
-          - "8080:8080"
-          - "50000:50000"
+        ports: "{{ jenkins_ports }}"
         volumes:
-          - jenkins_home:/var/jenkins_home
+          - "{{ jenkins_volume }}"
+        healthcheck:
+          test: ["CMD-SHELL", "{{ jenkins_healthcheck_cmd }}"]
+          interval: "{{ jenkins_healthcheck_interval }}"
+          timeout: "{{ jenkins_healthcheck_timeout }}"
+          retries: "{{ jenkins_healthcheck_retries }}"
+        cpus: "{{ jenkins_cpus }}"
+        memory: "{{ jenkins_memory }}"

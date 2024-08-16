@@ -1,15 +1,20 @@
+# names can be resolved due to using of docker compose networking
 global:
-  scrape_interval:     15s # Default value
+  scrape_interval: 15s  # Default value
 
 scrape_configs:
-  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  # Scrape Prometheus itself
   - job_name: 'prometheus'
-    # Override the global default and scrape targets from this job every 5 seconds.
     scrape_interval: 5s
     static_configs:
       - targets: ['localhost:9090']
 
-  # Example job for node_exporter
+  # Scrape Node Exporter
   - job_name: 'node_exporter'
     static_configs:
       - targets: ['node_exporter:9100']
+
+  # Scrape Grafana
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']

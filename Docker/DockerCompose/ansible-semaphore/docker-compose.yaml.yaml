@@ -1,0 +1,67 @@
+version: '3.8'
+
+volumes:
+  semaphore-mysql:
+    driver: local
+
+services:
+  mysql:
+    image: mysql:8.0
+    hostname: mysql
+    volumes:
+      - semaphore-mysql:/var/lib/mysql
+    environment:
+      - MYSQL_RANDOM_ROOT_PASSWORD=${MYSQL_RANDOM_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mysql --user=${MYSQL_USER} --password=${MYSQL_PASSWORD} --execute 'SELECT 1'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'       # Maximum 2 CPU cores
+          memory: 1024M      # Maximum 1GB RAM
+
+  semaphore:
+    container_name: ansiblesemaphore
+    image: semaphoreui/semaphore:v2.8.90
+    user: "${UID}:${GID}"
+    ports:
+      - "3000:3000"
+    environment:
+      - SEMAPHORE_DB_USER=${SEMAPHORE_DB_USER}
+      - SEMAPHORE_DB_PASS=${SEMAPHORE_DB_PASS}
+      - SEMAPHORE_DB_HOST=${SEMAPHORE_DB_HOST}
+      - SEMAPHORE_DB_PORT=${SEMAPHORE_DB_PORT}
+      - SEMAPHORE_DB_DIALECT=${SEMAPHORE_DB_DIALECT}
+      - SEMAPHORE_DB=${SEMAPHORE_DB}
+      - SEMAPHORE_PLAYBOOK_PATH=${SEMAPHORE_PLAYBOOK_PATH}
+      - SEMAPHORE_ADMIN_PASSWORD=${SEMAPHORE_ADMIN_PASSWORD}
+      - SEMAPHORE_ADMIN_NAME=${SEMAPHORE_ADMIN_NAME}
+      - SEMAPHORE_ADMIN_EMAIL=${SEMAPHORE_ADMIN_EMAIL}
+      - SEMAPHORE_ADMIN=${SEMAPHORE_ADMIN}
+      - SEMAPHORE_ACCESS_KEY_ENCRYPTION=${SEMAPHORE_ACCESS_KEY_ENCRYPTION}
+      - ANSIBLE_HOST_KEY_CHECKING=${ANSIBLE_HOST_KEY_CHECKING}
+    volumes:
+      - ./inventory/:/inventory:ro
+      - ./authorized-keys/:/authorized-keys:ro
+      - ./config/:/etc/semaphore:rw
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'       # Maximum 2 CPU cores
+          memory: 1024M      # Maximum 1GB RAM

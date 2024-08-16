@@ -1,0 +1,17 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx_reverse_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl/cert.crt:/etc/ssl/certs/cert.crt:ro
+      - ./ssl/cert.key:/etc/ssl/private/cert.key:ro
+    restart: unless-stopped
+
+volumes:
+  nginx-config:
+  nginx-ssl:
+  nginx-logs:
