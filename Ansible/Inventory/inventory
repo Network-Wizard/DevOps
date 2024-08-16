@@ -1,0 +1,8 @@
+[devops-cluster]
+# Adding a descriptive alias for the host
+devops-node-1 ansible_host=192.168.192.192 ansible_port=22443 ansible_user=your_user ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+# Group variables for the devops-cluster
+[devops-cluster:vars]
+ansible_python_interpreter=/usr/bin/python3
+ansible_connection=ssh
