@@ -6,7 +6,6 @@ pipeline {
     stages {
         stage('Stage 1 - Initial Setup') {
             steps {
-
                 echo 'Running initial setup...'
                 sh '''
                     echo $USER
@@ -17,13 +16,15 @@ pipeline {
                     rm -f Dockerfile
                     ls -ltrha
 
-                    # Stop and remove nginx container if it exists
-                    if [ $(docker ps -a -q --filter="name=nginx") ]; then
-                        docker stop nginx
-                        docker rm nginx
-                        echo "Stopped and removed existing nginx container."
+                    # Find and stop/remove the exact nginx container if it exists
+                    CONTAINER_ID=$(docker ps -a -q --filter="name=^/nginx$")
+
+                    if [ -n "$CONTAINER_ID" ]; then
+                        docker stop $CONTAINER_ID || true
+                        docker rm $CONTAINER_ID || true
+                        echo "Stopped and removed container named 'nginx'."
                     else
-                        echo "No nginx container running."
+                        echo "No container named 'nginx' found."
                     fi
                 '''
             }
@@ -105,7 +106,7 @@ pipeline {
                     sleep 60
 
                     # Stop the nginx container
-                    docker stop nginx-container
+                    docker stop nginx-container || true
                 '''
             }
         }
