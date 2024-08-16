@@ -9,7 +9,7 @@ pipeline {
 
                 echo 'Running initial setup...'
                 sh '''
-                    echo #USER
+                    echo $USER
                     sudo apt update
 
                     # Clean up workspace and older files
