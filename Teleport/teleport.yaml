@@ -1,0 +1,29 @@
+version: v3
+teleport:
+  nodename: <hostname/fqdn>
+  data_dir: /var/lib/teleport
+  log:
+    output: stderr
+    severity: INFO
+    format:
+      output: text
+  ca_pin: "<ca_pin>"  # output by tctl status
+  diag_addr: ""
+auth_service:
+  enabled: "yes"
+  listen_addr: 0.0.0.0:3025
+  cluster_name: <fqdn>
+  proxy_listener_mode: multiplex
+ssh_service:
+  enabled: "yes"
+  labels:
+    env: prod
+proxy_service:
+  enabled: "yes"
+  web_listen_addr: 0.0.0.0:443
+  public_addr: <fqdn>:443
+  https_keypairs:
+  - key_file: /path/to/keyfile
+    cert_file: /path/to/certfile
+  https_keypairs_reload_interval: 0s
+  acme: {}
