@@ -1,3 +1,5 @@
+# K8S Installation Guide
+```bash
 # INSTALL DOCKER/CRI
 sudo apt-get update
 sudo apt-get install ca-certificates curl -y
