@@ -22,7 +22,8 @@ sudo usermod -aG docker $USER
 #sudo -i
 containerd config default > /etc/containerd/config.toml
 #exit
-sudo vim /etc/containerd/config.toml => # [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+sudo vim /etc/containerd/config.toml
+# [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
 #  ...
 #  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
 #    SystemdCgroup = true
@@ -37,9 +38,11 @@ sudo systemctl status containerd.service
 #sudo systemctl stop ufw
 #sudo systemctl disable ufw
 #hostname
+
 cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.ipv4.ip_forward = 1
 EOF
+
 sudo sysctl --system
 sysctl net.ipv4.ip_forward
 #sudo timedatectl set-timezone <proper timezone>
@@ -71,3 +74,4 @@ kubectl get pods --all-namespaces
 #watch -d -n 5 kubectl get pods --all-namespaces
 kubectl get pods --all-namespaces
 #echo $KUBECONFIG
+```
