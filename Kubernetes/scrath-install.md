@@ -6,10 +6,12 @@ sudo apt-get install ca-certificates curl -y
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
+
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo \"$VERSION_CODENAME\") stable" | \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
 sudo apt-get update
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 sudo usermod -aG docker $USER
@@ -20,7 +22,8 @@ sudo usermod -aG docker $USER
 #sudo -i
 containerd config default > /etc/containerd/config.toml
 #exit
-sudo vim /etc/containerd/config.toml => # [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+sudo vim /etc/containerd/config.toml
+# [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
 #  ...
 #  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
 #    SystemdCgroup = true
@@ -35,9 +38,11 @@ sudo systemctl status containerd.service
 #sudo systemctl stop ufw
 #sudo systemctl disable ufw
 #hostname
+
 cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
 net.ipv4.ip_forward = 1
 EOF
+
 sudo sysctl --system
 sysctl net.ipv4.ip_forward
 #sudo timedatectl set-timezone <proper timezone>
@@ -69,3 +74,4 @@ kubectl get pods --all-namespaces
 #watch -d -n 5 kubectl get pods --all-namespaces
 kubectl get pods --all-namespaces
 #echo $KUBECONFIG
+```
