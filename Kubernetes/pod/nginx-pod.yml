@@ -1,46 +1,95 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: web-server-pod
+  name: web-server-pod  # Name of the Pod
   labels:
-    app: web-server
-    environment: production
-  annotations:
-    description: "This pod runs the web server for production environment"
+    app: web-server     # Labels to organize and select the pod
+    tier: frontend      # Additional label to classify the pod
 spec:
+  # Init containers run before the main containers, used for initialization tasks.
+  initContainers:
+  - name: init-myservice
+    image: busybox:1.28  # Init container to perform setup tasks
+    command: ['sh', '-c', 'echo "Init container started!"']
+  
+  # Main application container (nginx server)
   containers:
   - name: web-server
-    image: nginx:latest
+    image: nginx:latest  # Image for the main web server container
     ports:
-    - containerPort: 80
+    - containerPort: 80  # Exposing port 80 to serve HTTP traffic
+    
+    # Volume mounts for sharing data and configuration
+    # volumeMounts:
+    # - name: shared-data
+    #   mountPath: /usr/share/nginx/html  # Mount for static website files
+    # - name: secret-volume
+    #   mountPath: /etc/my-secret  # Mount for secret data (e.g., SSL keys, tokens)
+    # - name: configmap-volume
+    #   mountPath: /etc/config  # Mount for config data from ConfigMap
+    
+    # Security settings for the container
+    securityContext:
+      capabilities:
+        add: ["NET_ADMIN", "SYS_TIME"]  # Adding network and time admin capabilities
+
+    # Resource management to ensure efficient utilization of resources
     resources:
       requests:
-        memory: "256Mi"
-        cpu: "500m"
+        memory: "64Mi"  # Minimum memory the container will request
+        cpu: "250m"     # Minimum CPU (milli-cores) the container will request
       limits:
-        memory: "512Mi"
-        cpu: "1000m"
-    env:
-    - name: ENVIRONMENT
-      value: "production"
-    - name: LOG_LEVEL
-      value: "info"
+        memory: "128Mi" # Maximum memory the container can use
+        cpu: "500m"     # Maximum CPU the container can use
+    
+    # Health check probes to ensure container readiness and liveness
     readinessProbe:
       httpGet:
-        path: /  # Changed to root path
+        path: /index.html  # Readiness check at this path
         port: 80
-      initialDelaySeconds: 10
-      periodSeconds: 10
+      initialDelaySeconds: 5  # Delay before the readiness probe starts
+      periodSeconds: 5        # Probe frequency in seconds
     livenessProbe:
       httpGet:
-        path: /  # Changed to root path
+        path: /index.html  # Liveness check at this path
         port: 80
-      initialDelaySeconds: 30
-      periodSeconds: 20
-    volumeMounts:
-    - name: web-data
-      mountPath: /usr/share/nginx/html
-  volumes:
-  - name: web-data
-    emptyDir: {}
-  restartPolicy: Always
+      initialDelaySeconds: 15  # Delay before the liveness probe starts
+      periodSeconds: 20        # Probe frequency in seconds
+    startupProbe:
+      httpGet:
+        path: /index.html  # Startup probe to ensure container boots correctly
+        port: 80
+      failureThreshold: 30     # Number of failures before the pod is considered failed
+      periodSeconds: 10        # Probe frequency in seconds
+    
+    # Lifecycle hooks for additional actions when the container starts or stops
+    lifecycle:
+      postStart:
+        exec:
+          command: ["/bin/sh", "-c", "echo 'PostStart: Container is starting!'"]  # Action after the container starts
+      preStop:
+        exec:
+          command: ["/bin/sh", "-c", "echo 'PreStop: Container is stopping!'"]   # Action before the container stops
+  
+  # Service account that this pod will use to interact with the Kubernetes API
+  # serviceAccountName: nginx-service-account
+   
+  # # Pod-level security context to enforce user, group, and file system permissions
+  # securityContext:
+  #   runAsUser: 1000      # Run as user ID 1000
+  #   runAsGroup: 3000     # Run as group ID 3000
+  #   fsGroup: 2000        # File system group ID to ensure mounted volumes have the correct permissions
+  
+  # # Shared process namespace enables containers in the same pod to share process info
+  # shareProcessNamespace: true
+  
+  # # Volumes defined for mounting into the containers
+  # volumes:
+  # - name: shared-data
+  #   emptyDir: {}  # Temporary storage for shared data between containers
+  # - name: secret-volume
+  #   secret:
+  #     secretName: nginx-secret  # Secret holding sensitive data like passwords or tokens
+  # - name: configmap-volume
+  #   configMap:
+  #     name: nginx-configmap  # ConfigMap containing configuration data
