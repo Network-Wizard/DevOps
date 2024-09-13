@@ -27,15 +27,15 @@ spec:
       value: "info"
     readinessProbe:
       httpGet:
-        path: /
+        path: /  # Changed to root path
         port: 80
-      initialDelaySeconds: 5
+      initialDelaySeconds: 10
       periodSeconds: 10
     livenessProbe:
       httpGet:
-        path: /
+        path: /  # Changed to root path
         port: 80
-      initialDelaySeconds: 15
+      initialDelaySeconds: 30
       periodSeconds: 20
     volumeMounts:
     - name: web-data
