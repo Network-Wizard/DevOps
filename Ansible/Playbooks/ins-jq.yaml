@@ -1,0 +1,23 @@
+---
+- name: Install jq on multiple platforms
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Install jq on Debian/Ubuntu
+      apt:
+        name: jq
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install jq on RHEL/CentOS
+      yum:
+        name: jq
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Install jq on Fedora
+      dnf:
+        name: jq
+        state: present
+      when: ansible_distribution == "Fedora"

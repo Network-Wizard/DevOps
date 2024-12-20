@@ -1,0 +1,13 @@
+services:
+  # IT Tools Service
+  it-tools:
+    image: corentinth/it-tools:latest
+    container_name: it-tools
+    ports:
+      - "8880:80"  # Host Port:Container Port
+    restart: unless-stopped  # Automatically restart unless explicitly stopped
+    # Optional configurations can be added below for better customization
+    # environment:
+    #   - VARIABLE_NAME=value
+    # volumes:
+    #   - /host/path:/container/path
